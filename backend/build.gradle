@@ -1,0 +1,43 @@
+plugins {
+    id 'java'
+    id 'application'
+}
+
+application {
+    mainClass = 'ru.bmstu.iu6.culinarycompanion.Main'
+}
+
+dependencies {
+    implementation 'io.javalin:javalin:5.6.3'
+    implementation 'org.slf4j:slf4j-api:2.0.9'
+    implementation 'org.slf4j:slf4j-simple:2.0.9'
+    implementation 'org.postgresql:postgresql:42.7.1'
+    implementation 'com.zaxxer:HikariCP:5.1.0'
+    implementation 'com.google.code.gson:gson:2.10.1'
+    implementation 'at.favre.lib:bcrypt:0.10.2'
+    implementation 'com.auth0:java-jwt:4.4.0'
+
+    testImplementation 'junit:junit:4.13.2'
+    testImplementation 'org.mockito:mockito-core:5.8.0'
+}
+
+tasks.named('test') {
+    useJUnit()
+}
+
+task runApp(type: JavaExec) {
+    mainClass = application.mainClass
+    classpath = sourceSets.main.runtimeClasspath
+}
+
+jar {
+    manifest {
+        attributes(
+                'Main-Class': application.mainClass.get()
+        )
+    }
+    from {
+        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
