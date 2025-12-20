@@ -14,7 +14,6 @@ public class Recipe {
     private Integer prepTime;
     private Integer cookTime;
     private Integer servings;
-    private Integer calories;
     private RecipeCategory category;
     private String imageUrl;
     private LocalDateTime createdAt;
@@ -85,14 +84,6 @@ public class Recipe {
     
     public void setServings(Integer servings) {
         this.servings = servings;
-    }
-    
-    public Integer getCalories() {
-        return calories;
-    }
-    
-    public void setCalories(Integer calories) {
-        this.calories = calories;
     }
     
     public RecipeCategory getCategory() {

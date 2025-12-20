@@ -17,7 +17,6 @@ CREATE TABLE IF NOT EXISTS recipes (
     prep_time INTEGER NOT NULL,
     cook_time INTEGER NOT NULL,
     servings INTEGER NOT NULL,
-    calories INTEGER,
     category VARCHAR(50) NOT NULL,
     image_url VARCHAR(500),
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -26,7 +25,12 @@ CREATE TABLE IF NOT EXISTS recipes (
 
 CREATE TABLE IF NOT EXISTS ingredients (
     id BIGSERIAL PRIMARY KEY,
-    name VARCHAR(255) UNIQUE NOT NULL
+    name VARCHAR(255) UNIQUE NOT NULL,
+    proteins DECIMAL(10, 2) DEFAULT 0,
+    fats DECIMAL(10, 2) DEFAULT 0,
+    carbohydrates DECIMAL(10, 2) DEFAULT 0,
+    calories INTEGER DEFAULT 0,
+    default_unit VARCHAR(50) NOT NULL DEFAULT 'ГРАММ'
 );
 
 CREATE TABLE IF NOT EXISTS recipe_ingredients (

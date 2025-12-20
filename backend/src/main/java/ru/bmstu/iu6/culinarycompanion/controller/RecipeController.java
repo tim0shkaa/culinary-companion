@@ -15,15 +15,15 @@ import ru.bmstu.iu6.culinarycompanion.exception.ForbiddenException;
 import java.util.List;
 
 public class RecipeController {
-    
+
     private final RecipeService recipeService;
     private final Gson gson;
-    
+
     public RecipeController(RecipeService recipeService) {
         this.recipeService = recipeService;
         this.gson = new Gson();
     }
-    
+
     public void getAll(Context ctx) {
         try {
             String search = ctx.queryParam("search");
@@ -34,7 +34,7 @@ public class RecipeController {
             ctx.status(500).json(new ErrorResponse("Internal server error"));
         }
     }
-    
+
     public void getById(Context ctx) {
         try {
             Long recipeId = Long.parseLong(ctx.pathParam("id"));
@@ -52,16 +52,22 @@ public class RecipeController {
     public void create(Context ctx) {
         try {
             Long userId = ctx.attribute("userId");
+            System.out.println("Creating recipe for user: " + userId);
+            System.out.println("Request body: " + ctx.body());
             RecipeCreateRequest request = gson.fromJson(ctx.body(), RecipeCreateRequest.class);
             RecipeDetailResponse response = recipeService.createRecipe(userId, request);
             ctx.status(201).json(response);
         } catch (ValidationException e) {
+            System.err.println("Validation error: " + e.getMessage());
+            e.printStackTrace();
             ctx.status(400).json(new ErrorResponse(e.getMessage()));
         } catch (Exception e) {
+            System.err.println("ERROR in create recipe:");
+            e.printStackTrace();
             ctx.status(500).json(new ErrorResponse("Internal server error"));
         }
     }
-    
+
     public void update(Context ctx) {
         try {
             Long userId = ctx.attribute("userId");
@@ -79,7 +85,7 @@ public class RecipeController {
             ctx.status(500).json(new ErrorResponse("Internal server error"));
         }
     }
-    
+
     public void delete(Context ctx) {
         try {
             Long userId = ctx.attribute("userId");
@@ -94,7 +100,7 @@ public class RecipeController {
             ctx.status(500).json(new ErrorResponse("Internal server error"));
         }
     }
-    
+
     public void getUserRecipes(Context ctx) {
         try {
             Long userId = ctx.attribute("userId");
@@ -104,7 +110,7 @@ public class RecipeController {
             ctx.status(500).json(new ErrorResponse("Internal server error"));
         }
     }
-    
+
     public void addToMyRecipes(Context ctx) {
         try {
             Long userId = ctx.attribute("userId");

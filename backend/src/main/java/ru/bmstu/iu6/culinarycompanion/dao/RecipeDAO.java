@@ -18,7 +18,7 @@ public class RecipeDAO {
     }
     
     public Recipe create(Recipe recipe) throws SQLException {
-        String sql = "INSERT INTO recipes (user_id, title, description, instructions, prep_time, cook_time, servings, calories, category, image_url, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING id";
+        String sql = "INSERT INTO recipes (user_id, title, description, instructions, prep_time, cook_time, servings, category, image_url, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING id";
         
         try (Connection conn = dataSource.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -30,10 +30,9 @@ public class RecipeDAO {
             stmt.setInt(5, recipe.getPrepTime());
             stmt.setInt(6, recipe.getCookTime());
             stmt.setInt(7, recipe.getServings());
-            stmt.setInt(8, recipe.getCalories());
-            stmt.setString(9, recipe.getCategory().name());
-            stmt.setString(10, recipe.getImageUrl());
-            stmt.setTimestamp(11, Timestamp.valueOf(recipe.getCreatedAt()));
+            stmt.setString(8, recipe.getCategory().name());
+            stmt.setString(9, recipe.getImageUrl());
+            stmt.setTimestamp(10, Timestamp.valueOf(recipe.getCreatedAt()));
             
             ResultSet rs = stmt.executeQuery();
             if (rs.next()) {
@@ -171,7 +170,7 @@ public class RecipeDAO {
     }
     
     public void update(Recipe recipe) throws SQLException {
-        String sql = "UPDATE recipes SET title = ?, description = ?, instructions = ?, prep_time = ?, cook_time = ?, servings = ?, calories = ?, category = ?, image_url = ? WHERE id = ?";
+        String sql = "UPDATE recipes SET title = ?, description = ?, instructions = ?, prep_time = ?, cook_time = ?, servings = ?, category = ?, image_url = ? WHERE id = ?";
         
         try (Connection conn = dataSource.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -182,10 +181,9 @@ public class RecipeDAO {
             stmt.setInt(4, recipe.getPrepTime());
             stmt.setInt(5, recipe.getCookTime());
             stmt.setInt(6, recipe.getServings());
-            stmt.setInt(7, recipe.getCalories());
-            stmt.setString(8, recipe.getCategory().name());
-            stmt.setString(9, recipe.getImageUrl());
-            stmt.setLong(10, recipe.getId());
+            stmt.setString(7, recipe.getCategory().name());
+            stmt.setString(8, recipe.getImageUrl());
+            stmt.setLong(9, recipe.getId());
             
             stmt.executeUpdate();
         }
@@ -230,7 +228,6 @@ public class RecipeDAO {
         recipe.setPrepTime(rs.getInt("prep_time"));
         recipe.setCookTime(rs.getInt("cook_time"));
         recipe.setServings(rs.getInt("servings"));
-        recipe.setCalories(rs.getInt("calories"));
         recipe.setCategory(RecipeCategory.valueOf(rs.getString("category")));
         recipe.setImageUrl(rs.getString("image_url"));
         recipe.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());

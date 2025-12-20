@@ -1,6 +1,7 @@
 package ru.bmstu.iu6.culinarycompanion.dao;
 
 import ru.bmstu.iu6.culinarycompanion.domain.Ingredient;
+import ru.bmstu.iu6.culinarycompanion.domain.enums.MeasurementUnit;
 
 import javax.sql.DataSource;
 import java.sql.*;
@@ -17,12 +18,18 @@ public class IngredientDAO {
     }
     
     public Ingredient create(Ingredient ingredient) throws SQLException {
-        String sql = "INSERT INTO ingredients (name) VALUES (?) RETURNING id";
+        String sql = "INSERT INTO ingredients (name, proteins, fats, carbohydrates, calories, default_unit) " +
+                     "VALUES (?, ?, ?, ?, ?, ?) RETURNING id";
         
         try (Connection conn = dataSource.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             
             stmt.setString(1, ingredient.getName());
+            stmt.setDouble(2, ingredient.getProteins() != null ? ingredient.getProteins() : 0);
+            stmt.setDouble(3, ingredient.getFats() != null ? ingredient.getFats() : 0);
+            stmt.setDouble(4, ingredient.getCarbohydrates() != null ? ingredient.getCarbohydrates() : 0);
+            stmt.setInt(5, ingredient.getCalories() != null ? ingredient.getCalories() : 0);
+            stmt.setString(6, ingredient.getDefaultUnit() != null ? ingredient.getDefaultUnit().name() : MeasurementUnit.ГРАММ.name());
             
             ResultSet rs = stmt.executeQuery();
             if (rs.next()) {
@@ -110,6 +117,11 @@ public class IngredientDAO {
         
         Ingredient ingredient = new Ingredient();
         ingredient.setName(name);
+        ingredient.setProteins(0.0);
+        ingredient.setFats(0.0);
+        ingredient.setCarbohydrates(0.0);
+        ingredient.setCalories(0);
+        ingredient.setDefaultUnit(MeasurementUnit.ГРАММ);
         return create(ingredient);
     }
     
@@ -128,6 +140,22 @@ public class IngredientDAO {
         Ingredient ingredient = new Ingredient();
         ingredient.setId(rs.getLong("id"));
         ingredient.setName(rs.getString("name"));
+        ingredient.setProteins(rs.getDouble("proteins"));
+        ingredient.setFats(rs.getDouble("fats"));
+        ingredient.setCarbohydrates(rs.getDouble("carbohydrates"));
+        ingredient.setCalories(rs.getInt("calories"));
+        
+        String unitStr = rs.getString("default_unit");
+        if (unitStr != null) {
+            try {
+                ingredient.setDefaultUnit(MeasurementUnit.valueOf(unitStr));
+            } catch (IllegalArgumentException e) {
+                ingredient.setDefaultUnit(MeasurementUnit.ГРАММ);
+            }
+        } else {
+            ingredient.setDefaultUnit(MeasurementUnit.ГРАММ);
+        }
+        
         return ingredient;
     }
 }
