@@ -1,12 +1,12 @@
 package ru.bmstu.iu6.culinarycompanion.dto.request;
 
-public class MealPlanEntryRequest {
+public class UserMealEntryRequest {
     
     private Long recipeId;
     private String mealDate;
     private String mealType;
     
-    public MealPlanEntryRequest() {
+    public UserMealEntryRequest() {
     }
     
     public Long getRecipeId() {

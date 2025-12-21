@@ -15,7 +15,7 @@ const Header = () => {
           {isAuthenticated ? (
             <>
               <Link to="/recipes">Рецепты</Link>
-              <Link to="/mealplans">Планы питания</Link>
+              <Link to="/meal-planning">Планирование рациона</Link>
               <Link to="/profile">Профиль ({user?.username})</Link>
             </>
           ) : (

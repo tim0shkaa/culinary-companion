@@ -2,186 +2,155 @@ import { useState, useEffect } from 'react';
 import { mealPlanService } from '../services/mealPlanService';
 import { recipeService } from '../services/recipeService';
 
-const DayMealModal = ({ mealPlanId, date, entries, onClose }) => {
+const DayMealModal = ({ date, onClose }) => {
+  const [entries, setEntries] = useState([]);
   const [recipes, setRecipes] = useState([]);
   const [nutrition, setNutrition] = useState(null);
-  const [selectedMealType, setSelectedMealType] = useState(null);
-  const [selectedRecipe, setSelectedRecipe] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   const mealTypes = ['ЗАВТРАК', 'ОБЕД', 'УЖИН', 'ПЕРЕКУС'];
-  const mealTypeLabels = {
-    'ЗАВТРАК': 'Завтрак',
-    'ОБЕД': 'Обед',
-    'УЖИН': 'Ужин',
-    'ПЕРЕКУС': 'Перекус',
-  };
-
-  const dateStr = date.toISOString().split('T')[0];
 
   useEffect(() => {
-    fetchRecipes();
-    fetchNutrition();
-  }, []);
+    fetchData();
+  }, [date]);
 
-  const fetchRecipes = async () => {
-    try {
-      const data = await recipeService.getAll();
-      setRecipes(data);
-    } catch (err) {
-      console.error('Ошибка загрузки рецептов');
-    }
-  };
-
-  const fetchNutrition = async () => {
-    try {
-      const data = await mealPlanService.getDayNutrition(mealPlanId, dateStr);
-      setNutrition(data);
-    } catch (err) {
-      console.error('Ошибка загрузки КБЖУ');
-    }
-  };
-
-  const handleAddRecipe = async () => {
-    if (!selectedMealType || !selectedRecipe) {
-      alert('Выберите тип приёма пищи и рецепт');
-      return;
-    }
-
+  const fetchData = async () => {
+  try {
     setLoading(true);
+    const dateStr = date.toISOString().split('T')[0];
+    
+    const [dayEntries, allRecipes, dayNutrition] = await Promise.all([
+      mealPlanService.getDayEntries(dateStr),
+      recipeService.getAll(),
+      mealPlanService.getDayNutrition(dateStr)
+    ]);
+
+    console.log('DEBUG: dayEntries =', dayEntries);     // ДОБАВЬ
+    console.log('DEBUG: allRecipes =', allRecipes);     // ДОБАВЬ
+    console.log('DEBUG: dayNutrition =', dayNutrition); // ДОБАВЬ
+
+    setEntries(dayEntries || []);
+    setRecipes(allRecipes || []);
+    setNutrition(dayNutrition);
+  } catch (err) {
+    console.error('Ошибка загрузки данных:', err);
+  } finally {
+    setLoading(false);
+  }
+};
+
+  const handleAddEntry = async (mealType, recipeId) => {
     try {
-      await mealPlanService.addEntry(mealPlanId, {
-        recipeId: parseInt(selectedRecipe),
+      const dateStr = date.toISOString().split('T')[0];
+      await mealPlanService.addEntry({
+        recipeId: parseInt(recipeId),
         mealDate: dateStr,
-        mealType: selectedMealType,
+        mealType: mealType
       });
-      
-      setSelectedMealType(null);
-      setSelectedRecipe('');
-      onClose();
+      await fetchData();
     } catch (err) {
-      alert('Ошибка добавления рецепта');
-    } finally {
-      setLoading(false);
+      console.error('Ошибка добавления записи:', err);
+      alert('Не удалось добавить рецепт');
     }
   };
 
   const handleDeleteEntry = async (entryId) => {
-    if (window.confirm('Удалить рецепт из этого приёма пищи?')) {
-      try {
-        await mealPlanService.deleteEntry(mealPlanId, entryId);
-        onClose();
-      } catch (err) {
-        alert('Ошибка удаления');
-      }
+    try {
+      await mealPlanService.deleteEntry(entryId);
+      await fetchData();
+    } catch (err) {
+      console.error('Ошибка удаления записи:', err);
+      alert('Не удалось удалить рецепт');
     }
   };
 
-  const getMealEntries = (mealType) => {
+  const getEntriesByMealType = (mealType) => {
     return entries.filter(e => e.mealType === mealType);
   };
 
+  if (loading) return <div className="modal-overlay"><div className="loading">Загрузка...</div></div>;
+
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+      <div className="modal-content day-meal-modal" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
-          <h2>{date.toLocaleDateString('ru-RU', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</h2>
-          <button onClick={onClose} className="modal-close">✕</button>
+          <h2>{date.toLocaleDateString('ru-RU', { weekday: 'long', day: 'numeric', month: 'long' })}</h2>
+          <button className="close-btn" onClick={onClose}>×</button>
         </div>
 
         <div className="modal-body">
           {nutrition && (
-            <div className="nutrition-summary">
+            <div className="day-nutrition">
               <h3>КБЖУ за день:</h3>
               <div className="nutrition-grid">
                 <div className="nutrition-item">
-                  <span className="nutrition-label">Белки:</span>
-                  <span className="nutrition-value">{nutrition.totalProteins?.toFixed(1)} г</span>
+                  <span className="label">Белки:</span>
+                  <span className="value">{nutrition.totalProteins?.toFixed(1) || 0} г</span>
                 </div>
                 <div className="nutrition-item">
-                  <span className="nutrition-label">Жиры:</span>
-                  <span className="nutrition-value">{nutrition.totalFats?.toFixed(1)} г</span>
+                  <span className="label">Жиры:</span>
+                  <span className="value">{nutrition.totalFats?.toFixed(1) || 0} г</span>
                 </div>
                 <div className="nutrition-item">
-                  <span className="nutrition-label">Углеводы:</span>
-                  <span className="nutrition-value">{nutrition.totalCarbs?.toFixed(1)} г</span>
+                  <span className="label">Углеводы:</span>
+                  <span className="value">{nutrition.totalCarbohydrates?.toFixed(1) || 0} г</span>
                 </div>
                 <div className="nutrition-item">
-                  <span className="nutrition-label">Калории:</span>
-                  <span className="nutrition-value">{nutrition.totalCalories} ккал</span>
+                  <span className="label">Калории:</span>
+                  <span className="value">{Math.round(nutrition.totalCalories || 0)} ккал</span>
                 </div>
               </div>
             </div>
           )}
 
-          {mealTypes.map(mealType => (
-            <div key={mealType} className="meal-section">
-              <h3>{mealTypeLabels[mealType]}</h3>
+          <div className="meals-grid">
+            {mealTypes.map((mealType) => {
+              const mealEntries = getEntriesByMealType(mealType);
               
-              <div className="meal-recipes">
-                {getMealEntries(mealType).length === 0 ? (
-                  <p className="empty-meal">Рецептов нет</p>
-                ) : (
-                  getMealEntries(mealType).map(entry => (
-                    <div key={entry.id} className="meal-recipe-item">
-                      <span>{entry.recipeTitle}</span>
-                      <button
-                        onClick={() => handleDeleteEntry(entry.id)}
-                        className="btn-small btn-danger"
-                      >
-                        ✕
-                      </button>
-                    </div>
-                  ))
-                )}
-              </div>
+              return (
+                <div key={mealType} className="meal-section">
+                  <h4>{mealType}</h4>
+                  
+                  <div className="meal-entries">
+                    {mealEntries.map((entry) => (
+                      <div key={entry.id} className="meal-entry">
+                        <span>{entry.recipeTitle}</span>
+                        <button 
+                          className="delete-btn"
+                          onClick={() => handleDeleteEntry(entry.id)}
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    ))}
+                  </div>
 
-              <button
-                onClick={() => setSelectedMealType(mealType)}
-                className="btn btn-secondary btn-small"
-              >
-                + Добавить рецепт
-              </button>
-            </div>
-          ))}
+                  <div className="add-recipe">
+                    <select 
+                      onChange={(e) => {
+                        if (e.target.value) {
+                          handleAddEntry(mealType, e.target.value);
+                          e.target.value = '';
+                        }
+                      }}
+                      className="recipe-select"
+                    >
+                      <option value="">+ Добавить рецепт</option>
+                      {recipes.map((recipe) => (
+                        <option key={recipe.id} value={recipe.id}>
+                          {recipe.title}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
 
-          {selectedMealType && (
-            <div className="add-recipe-form">
-              <h3>Добавить рецепт в {mealTypeLabels[selectedMealType]}</h3>
-              
-              <select
-                value={selectedRecipe}
-                onChange={(e) => setSelectedRecipe(e.target.value)}
-                className="recipe-select"
-              >
-                <option value="">Выберите рецепт</option>
-                {recipes.map(recipe => (
-                  <option key={recipe.id} value={recipe.id}>
-                    {recipe.title}
-                  </option>
-                ))}
-              </select>
-
-              <div className="form-actions">
-                <button
-                  onClick={handleAddRecipe}
-                  className="btn btn-primary"
-                  disabled={loading || !selectedRecipe}
-                >
-                  {loading ? 'Добавление...' : 'Добавить'}
-                </button>
-                <button
-                  onClick={() => {
-                    setSelectedMealType(null);
-                    setSelectedRecipe('');
-                  }}
-                  className="btn btn-secondary"
-                >
-                  Отмена
-                </button>
-              </div>
-            </div>
-          )}
+        <div className="modal-footer">
+          <button className="btn btn-secondary" onClick={onClose}>Закрыть</button>
         </div>
       </div>
     </div>

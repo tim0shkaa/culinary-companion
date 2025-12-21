@@ -1,6 +1,6 @@
 package ru.bmstu.iu6.culinarycompanion.dto.response;
 
-public class MealPlanEntryResponse {
+public class UserMealEntryResponse {
     
     private Long id;
     private Long recipeId;
@@ -9,7 +9,7 @@ public class MealPlanEntryResponse {
     private String mealDate;
     private String mealType;
     
-    public MealPlanEntryResponse() {
+    public UserMealEntryResponse() {
     }
     
     public Long getId() {

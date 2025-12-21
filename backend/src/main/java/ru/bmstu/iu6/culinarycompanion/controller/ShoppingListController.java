@@ -18,21 +18,6 @@ public class ShoppingListController {
         this.gson = new Gson();
     }
     
-    public void generateFromMealPlan(Context ctx) {
-        try {
-            Long userId = ctx.attribute("userId");
-            Long mealPlanId = Long.parseLong(ctx.pathParam("mealPlanId"));
-            ShoppingListResponse response = shoppingListService.generateFromMealPlan(userId, mealPlanId);
-            ctx.status(201).json(response);
-        } catch (NotFoundException e) {
-            ctx.status(404).json(new ErrorResponse(e.getMessage()));
-        } catch (ForbiddenException e) {
-            ctx.status(403).json(new ErrorResponse(e.getMessage()));
-        } catch (Exception e) {
-            ctx.status(500).json(new ErrorResponse("Internal server error"));
-        }
-    }
-    
     public void getShoppingList(Context ctx) {
         try {
             Long userId = ctx.attribute("userId");

@@ -4,10 +4,10 @@ import ru.bmstu.iu6.culinarycompanion.domain.enums.MealType;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
-public class MealPlanEntry {
+public class UserMealEntry {
     
     private Long id;
-    private Long mealPlanId;
+    private Long userId;
     private Long recipeId;
     private LocalDate mealDate;
     private MealType mealType;
@@ -16,7 +16,7 @@ public class MealPlanEntry {
     private String recipeTitle;
     private String recipeImageUrl;
     
-    public MealPlanEntry() {
+    public UserMealEntry() {
     }
     
     public Long getId() {
@@ -27,12 +27,12 @@ public class MealPlanEntry {
         this.id = id;
     }
     
-    public Long getMealPlanId() {
-        return mealPlanId;
+    public Long getUserId() {
+        return userId;
     }
     
-    public void setMealPlanId(Long mealPlanId) {
-        this.mealPlanId = mealPlanId;
+    public void setUserId(Long userId) {
+        this.userId = userId;
     }
     
     public Long getRecipeId() {

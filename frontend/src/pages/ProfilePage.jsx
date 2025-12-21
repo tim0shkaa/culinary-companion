@@ -252,7 +252,7 @@ const ProfilePage = () => {
         {activeTab === 'mealPlans' && (
           <div className="mealplans-tab">
             <p>Планы питания - в разработке</p>
-            <Link to="/mealplans" className="btn btn-primary">
+            <Link to="/meal-planning" className="btn btn-primary">
               Перейти к планам питания
             </Link>
           </div>
