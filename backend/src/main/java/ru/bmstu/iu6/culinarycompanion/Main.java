@@ -163,6 +163,7 @@ public class Main {
         app.post("/api/meal-planning/entries", mealPlanningController::addEntry);
         app.delete("/api/meal-planning/entries/{entryId}", mealPlanningController::deleteEntry);
         app.get("/api/meal-planning/nutrition", mealPlanningController::getDayNutrition);
+        app.get("/api/meal-planning/shopping-list", mealPlanningController::generateShoppingList);
 
         // Shopping list routes
         app.get("/api/shopping-lists/{id}", shoppingListController::getShoppingList);

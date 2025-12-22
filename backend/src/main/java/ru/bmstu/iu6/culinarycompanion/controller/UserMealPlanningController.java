@@ -110,4 +110,24 @@ public class UserMealPlanningController {
             return error;
         }
     }
+
+    public void generateShoppingList(Context ctx) {
+        try {
+            Long userId = ctx.attribute("userId");
+            String date = ctx.queryParam("date");
+
+            if (date == null || date.isEmpty()) {
+                ctx.status(400).json(new ErrorResponse("date parameter is required"));
+                return;
+            }
+
+            List<UserMealPlanningService.ShoppingListItemResponse> items =
+                    mealPlanningService.generateShoppingList(userId, date);
+
+            ctx.json(items);
+        } catch (Exception e) {
+            e.printStackTrace();
+            ctx.status(500).json(new ErrorResponse("Failed to generate shopping list: " + e.getMessage()));
+        }
+    }
 }

@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { mealPlanService } from '../services/mealPlanService';
 import { recipeService } from '../services/recipeService';
 
 const DayMealModal = ({ date, onClose }) => {
+  const navigate = useNavigate();
   const [entries, setEntries] = useState([]);
   const [recipes, setRecipes] = useState([]);
   const [nutrition, setNutrition] = useState(null);
@@ -15,29 +17,25 @@ const DayMealModal = ({ date, onClose }) => {
   }, [date]);
 
   const fetchData = async () => {
-  try {
-    setLoading(true);
-    const dateStr = date.toISOString().split('T')[0];
-    
-    const [dayEntries, allRecipes, dayNutrition] = await Promise.all([
-      mealPlanService.getDayEntries(dateStr),
-      recipeService.getAll(),
-      mealPlanService.getDayNutrition(dateStr)
-    ]);
+    try {
+      setLoading(true);
+      const dateStr = date.toISOString().split('T')[0];
+      
+      const [dayEntries, allRecipes, dayNutrition] = await Promise.all([
+        mealPlanService.getDayEntries(dateStr),
+        recipeService.getAll(),
+        mealPlanService.getDayNutrition(dateStr)
+      ]);
 
-    console.log('DEBUG: dayEntries =', dayEntries);     // ДОБАВЬ
-    console.log('DEBUG: allRecipes =', allRecipes);     // ДОБАВЬ
-    console.log('DEBUG: dayNutrition =', dayNutrition); // ДОБАВЬ
-
-    setEntries(dayEntries || []);
-    setRecipes(allRecipes || []);
-    setNutrition(dayNutrition);
-  } catch (err) {
-    console.error('Ошибка загрузки данных:', err);
-  } finally {
-    setLoading(false);
-  }
-};
+      setEntries(dayEntries || []);
+      setRecipes(allRecipes || []);
+      setNutrition(dayNutrition);
+    } catch (err) {
+      console.error('Ошибка загрузки данных:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleAddEntry = async (mealType, recipeId) => {
     try {
@@ -61,6 +59,20 @@ const DayMealModal = ({ date, onClose }) => {
     } catch (err) {
       console.error('Ошибка удаления записи:', err);
       alert('Не удалось удалить рецепт');
+    }
+  };
+
+  const handleGenerateShoppingList = async () => {
+    try {
+      const dateStr = date.toISOString().split('T')[0];
+      const items = await mealPlanService.generateShoppingList(dateStr);
+      
+      navigate('/shopping-list', { 
+        state: { items, date: dateStr } 
+      });
+    } catch (err) {
+      console.error('Ошибка генерации списка:', err);
+      alert('Не удалось создать список покупок');
     }
   };
 
@@ -150,6 +162,13 @@ const DayMealModal = ({ date, onClose }) => {
         </div>
 
         <div className="modal-footer">
+          <button 
+            className="btn btn-primary" 
+            onClick={handleGenerateShoppingList}
+            disabled={entries.length === 0}
+          >
+            📋 Создать список покупок
+          </button>
           <button className="btn btn-secondary" onClick={onClose}>Закрыть</button>
         </div>
       </div>

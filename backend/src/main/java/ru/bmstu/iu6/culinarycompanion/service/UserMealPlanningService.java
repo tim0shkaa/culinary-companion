@@ -11,7 +11,9 @@ import ru.bmstu.iu6.culinarycompanion.exception.NotFoundException;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class UserMealPlanningService {
 
@@ -122,5 +124,85 @@ public class UserMealPlanningService {
         return response;
     }
 
-    
+    // ДОБАВЬ ЭТИ МЕТОДЫ В КОНЕЦ UserMealPlanningService.java (перед закрывающей скобкой класса)
+
+    public List<ShoppingListItemResponse> generateShoppingList(Long userId, String dateStr) throws SQLException {
+        LocalDate date = LocalDate.parse(dateStr);
+        List<UserMealEntry> entries = userMealEntryDAO.findByUserIdAndDate(userId, date);
+
+        // Map для группировки ингредиентов: ingredientId -> количество
+        Map<Long, Double> ingredientQuantities = new HashMap<>();
+        Map<Long, String> ingredientNames = new HashMap<>();
+        Map<Long, String> ingredientUnits = new HashMap<>();
+
+        // Собираем все ингредиенты из всех рецептов дня
+        for (UserMealEntry entry : entries) {
+            List<RecipeIngredient> ingredients = recipeIngredientDAO.findByRecipeId(entry.getRecipeId());
+
+            for (RecipeIngredient recipeIng : ingredients) {
+                Long ingredientId = recipeIng.getIngredientId();
+
+                // Суммируем количество
+                ingredientQuantities.merge(ingredientId, recipeIng.getQuantity(), Double::sum);
+
+                // Сохраняем название и единицу измерения
+                if (!ingredientNames.containsKey(ingredientId)) {
+                    Ingredient ing = ingredientDAO.findById(ingredientId).orElse(null);
+                    if (ing != null) {
+                        ingredientNames.put(ingredientId, ing.getName());
+                        ingredientUnits.put(ingredientId, recipeIng.getUnit().name());
+                    }
+                }
+            }
+        }
+
+        // Преобразуем в список ответов
+        List<ShoppingListItemResponse> items = new ArrayList<>();
+        for (Map.Entry<Long, Double> entry : ingredientQuantities.entrySet()) {
+            Long ingredientId = entry.getKey();
+            ShoppingListItemResponse item = new ShoppingListItemResponse(
+                    ingredientId,
+                    ingredientNames.get(ingredientId),
+                    entry.getValue(),
+                    ingredientUnits.get(ingredientId)
+            );
+            items.add(item);
+        }
+
+        // Сортируем по имени
+        items.sort((a, b) -> a.getIngredientName().compareTo(b.getIngredientName()));
+
+        return items;
+    }
+
+    // Вспомогательный класс для ответа
+    public static class ShoppingListItemResponse {
+        private Long ingredientId;
+        private String ingredientName;
+        private Double quantity;
+        private String unit;
+
+        public ShoppingListItemResponse(Long ingredientId, String ingredientName, Double quantity, String unit) {
+            this.ingredientId = ingredientId;
+            this.ingredientName = ingredientName;
+            this.quantity = quantity;
+            this.unit = unit;
+        }
+
+        public Long getIngredientId() {
+            return ingredientId;
+        }
+
+        public String getIngredientName() {
+            return ingredientName;
+        }
+
+        public Double getQuantity() {
+            return quantity;
+        }
+
+        public String getUnit() {
+            return unit;
+        }
+    }
 }

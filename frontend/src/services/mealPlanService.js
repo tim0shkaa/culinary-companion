@@ -25,4 +25,9 @@ export const mealPlanService = {
     const response = await api.get(`/meal-planning/nutrition?date=${date}`);
     return response.data;
   },
+
+  generateShoppingList: async (date) => {
+    const response = await api.get(`/meal-planning/shopping-list?date=${date}`);
+    return response.data;
+  },
 };

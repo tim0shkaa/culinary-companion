@@ -8,7 +8,8 @@ import RegisterPage from './pages/RegisterPage';
 import RecipesPage from './pages/RecipesPage';
 import RecipeDetailPage from './pages/RecipeDetailPage';
 import RecipeCreatePage from './pages/RecipeCreatePage';
-import MealPlanningPage from './pages/MealPlanningPage';  // НОВЫЙ ИМПОРТ
+import MealPlanningPage from './pages/MealPlanningPage';
+import ShoppingListPage from './pages/ShoppingListPage';
 import ProfilePage from './pages/ProfilePage';
 import './App.css';
 
@@ -36,6 +37,14 @@ function App() {
               element={
                 <ProtectedRoute>
                   <MealPlanningPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/shopping-list"
+              element={
+                <ProtectedRoute>
+                  <ShoppingListPage />
                 </ProtectedRoute>
               }
             />
